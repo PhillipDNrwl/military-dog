@@ -55,6 +55,7 @@ jobs:
             --target=lint \
             --target=build \
             --target=e2e
+            --all
 
       # 7. Stop Nx Cloud CI run
       - name: Stop Nx Cloud
