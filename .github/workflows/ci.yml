@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
 
 permissions:
@@ -12,6 +13,8 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
+
+    # Make your Applitools key available to all steps
     env:
       APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
 
@@ -23,13 +26,14 @@ jobs:
           fetch-depth: 0
           filter: tree:0
 
-      # 2. Start an Nx Cloud CI run (enable task distribution & logging)
+      # 2. Start Nx Cloud CI run (enable distributed caching & logging)
       - name: Start Nx Cloud
-        run: npx nx-cloud start-ci-run \
-             --distribute-on="3 linux-medium-js" \
-             --stop-agents-after="e2e-ci"
+        run: |
+          npx nx-cloud start-ci-run \
+            --distribute-on="3 linux-medium-js" \
+            --stop-agents-after="e2e-ci"
 
-      # 3. Setup Node & cache
+      # 3. Setup Node.js and cache npm
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,20 +48,15 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      # 6. Lint & Build only (skip unit tests)
-      - name: Lint & Build
-        run: npx nx affected --target=lint --target=build
-
-      # 7. Run your E2E suite in headed mode under Xvfb
-      - name: Run E2E (via Nx)
+      # 6. Lint, Build, and E2E (skipping unit tests)
+      - name: Lint, Build & E2E
         run: |
-          npm run start &
-          npx wait-on http://localhost:4200
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-            npx nx run military-dog-e2e:e2e --ci --parallel=1 --reporter=github
+          npx nx affected \
+            --target=lint \
+            --target=build \
+            --target=e2e
 
-
-      # 8. Stop the Nx Cloud run (optional, on completion)
+      # 7. Stop Nx Cloud CI run
       - name: Stop Nx Cloud
         if: always()
         run: npx nx-cloud stop-ci-run
