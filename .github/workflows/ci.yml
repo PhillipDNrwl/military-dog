@@ -49,12 +49,13 @@ jobs:
         run: npx nx affected --target=lint --target=build
 
       # 7. Run your E2E suite in headed mode under Xvfb
-      - name: Run E2E (Playwright headed with Xvfb)
+      - name: Run E2E (via Nx)
         run: |
           npm run start &
           npx wait-on http://localhost:4200
           xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-            npx playwright test --config=./e2e/playwright.config.ts --reporter=github
+            npx nx run military-dog-e2e:e2e --ci --parallel=1 --reporter=github
+
 
       # 8. Stop the Nx Cloud run (optional, on completion)
       - name: Stop Nx Cloud
