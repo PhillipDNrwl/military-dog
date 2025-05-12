@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "nx serve",
+    "start": "nx serve military-dog",
     "build": "nx build",
     "test": "nx test",
-    "e2e": "npm run start & npx playwright test --headed"
+    "e2e": "npm run start & npx playwright test e2e/src --config=./e2e/playwright.config.ts --ui"
   },
   "private": true,
   "dependencies": {
@@ -27,6 +27,7 @@
     "@angular/cli": "~19.2.0",
     "@angular/compiler-cli": "~19.2.0",
     "@angular/language-service": "~19.2.0",
+    "@applitools/eyes-playwright": "^1.37.2",
     "@eslint/js": "^9.8.0",
     "@nx/angular": "21.0.3",
     "@nx/devkit": "21.0.3",

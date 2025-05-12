@@ -4,7 +4,7 @@ import { NxWelcomeComponent } from './nx-welcome.component';
 import {HomeComponent} from 'home.component'
 
 @Component({
-  imports: [NxWelcomeComponent, RouterModule, HomeComponent],
+  imports: [RouterModule, HomeComponent],
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

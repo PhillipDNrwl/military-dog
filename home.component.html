@@ -1,4 +1,6 @@
-<div class="basic-card" [ngStyle]="{'background-color': cardColor}">
-  
-    <button class="action-button" (click)="onButtonClick()">Change Color</button>
+<div class="basic-card" data-testid="basic-card" [ngStyle]="{'background-color': cardColor}">
+    <h2 class="card-title">Small app title</h2>
+
+
+    <button class="action-button" (click)="onButtonClick()">Click Me</button>
   </div>
