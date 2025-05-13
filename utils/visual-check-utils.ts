@@ -1,13 +1,14 @@
-import { ClassicRunner, Eyes, Target, BatchInfo } from '@applitools/eyes-playwright';
+import { Configuration, BatchInfo, ClassicRunner, Eyes, Target, BrowserType } from '@applitools/eyes-playwright';
 import type { Locator, Page } from '@playwright/test';
 
-// Use ClassicRunner to ensure only a single snapshot per check
+// Use the Classic runner for a single snapshot per check
 const runner = new ClassicRunner();
+// Default batch grouping; you can override via initVisualTests
 let batch = new BatchInfo('Default Batch');
 
 /**
  * Initialize a new visual test batch.
- * @param batchName - Name of the batch in Applitools dashboard
+ * @param batchName Name of the batch in the Applitools dashboard
  */
 export function initVisualTests(batchName: string) {
   batch = new BatchInfo(batchName);
@@ -29,17 +30,18 @@ function isVisualOptions(obj: any): obj is VisualOptions {
 
 /**
  * Takes a visual snapshot via Applitools Eyes using ClassicRunner.
+ * Targets only a single browser/environment (Chrome@1280x720).
  *
- * @param page - Playwright Page instance
- * @param testName - Unique name for this snapshot within the batch
- * @param regionOrOpts - Either a testId string, Locator, or a VisualOptions object
- * @param viewportSizeOverride - Optional viewport size override when passing region directly
+ * @param page Playwright Page instance
+ * @param testName Unique name for this snapshot within the batch
+ * @param regionOrOpts Either a testId string, Locator, or a VisualOptions object
+ * @param viewportSizeOverride Optional viewport size override when passing region directly
  */
 export async function visualCheck(
   page: Page,
   testName: string,
   regionOrOpts?: string | Locator | VisualOptions,
-  viewportSizeOverride?: { width: number; height: number },
+  viewportSizeOverride?: { width: number; height: number }
 ) {
   let appName = 'Nx Cloud CI-Visual';
   let region: string | Locator | undefined;
@@ -47,23 +49,30 @@ export async function visualCheck(
   let masks: Array<string | Locator> = [];
 
   if (isVisualOptions(regionOrOpts)) {
-    appName = regionOrOpts.appName || appName;
-    region = regionOrOpts.region;
-    viewportSize = regionOrOpts.viewportSize;
-    masks = regionOrOpts.masks ?? [];
+    const opts = regionOrOpts as VisualOptions;
+    appName = opts.appName || appName;
+    region = opts.region;
+    viewportSize = opts.viewportSize;
+    masks = opts.masks ?? [];
   } else if (regionOrOpts !== undefined) {
     region = regionOrOpts;
     viewportSize = viewportSizeOverride;
   }
 
+  // Configure Eyes for a single environment
+  const conf = new Configuration();
+  conf.addBrowser(1280, 720, BrowserType.CHROME);
+  // Uncomment and adjust if you need mobile emulation:
+  // conf.addDeviceEmulation('iPhone X');
+
   const eyes = new Eyes(runner);
   eyes.setBatch(batch);
+  eyes.setConfiguration(conf);
   eyes.setApiKey(process.env['APPLITOOLS_API_KEY']!);
 
-  // Open a visual test
   await eyes.open(page, appName, testName, viewportSize);
 
-  // Determine the target: region or full window
+  // Choose region or full-window
   let checkTarget = region
     ? Target.region(typeof region === 'string' ? page.getByTestId(region) : region)
     : Target.window();
@@ -74,7 +83,6 @@ export async function visualCheck(
     checkTarget = checkTarget.ignore(maskLocator);
   }
 
-  // Perform the visual check and close the test
   await eyes.check(testName, checkTarget);
   await eyes.close();
 }
