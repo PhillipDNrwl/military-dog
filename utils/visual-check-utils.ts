@@ -7,7 +7,7 @@ import {
   import type { Locator, Page } from '@playwright/test';
   
   const runner = new VisualGridRunner({ testConcurrency: 5 });
-  let batch = new BatchInfo('Nx Task Graph Visual Tests');
+  let batch = new BatchInfo('Basic visual test');
   
   
   export function initVisualTests(batchName: string) {
