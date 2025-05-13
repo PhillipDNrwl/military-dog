@@ -13,66 +13,32 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
-
     env:
       APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
-
     steps:
-      # 1. Checkout code
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           filter: tree:0
+          fetch-depth: 0
 
-      # 2. Start Nx Cloud for distributed caching
-      - name: Start Nx Cloud
-        run: |
-          npx nx-cloud start-ci-run \
-            --distribute-on="3 linux-medium-js" \
-            --stop-agents-after="e2e-ci"
+      # This enables task distribution via Nx Cloud
+      # Run this command as early as possible, before dependencies are installed
+      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
+      # Uncomment this line to enable task distribution
+      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
 
-      # 3. Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # Cache node_modules
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: 'npm'
 
-      # 4. Install dependencies
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps
+      - run: npx playwright install --with-deps
+      - uses: nrwl/nx-set-shas@v4
 
-      # 5. Install Playwright browsers
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      # 6. Record SHAs for Nx Cloud
-      - name: Record SHAs for Nx Cloud
-        uses: nrwl/nx-set-shas@v4
-
-      # 7. Lint all projects
-      - name: Lint
-        run: npx nx run-many --target=lint --all
-
-      # 8. Build all projects
-      - name: Build
-        run: npx nx run-many --target=build --all
-
-      # 9. Run E2E (headed under Xvfb)
-      - name: Run E2E tests
-        run: |
-          # Start the app
-          npm run start &
-
-          # Wait for it to be ready
-          npx wait-on http://localhost:4200
-
-          # Wrap Playwright in Xvfb so headed mode works on Ubuntu
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-            npx nx run-many --target=e2e --all --parallel=1
-
-      # 10. Stop Nx Cloud CI run
-      - name: Stop Nx Cloud
-        if: always()
-        run: npx nx-cloud stop-ci-run
+      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
+      # - run: npx nx-cloud record -- echo Hello World
+      # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
+      # When you enable task distribution, run the e2e-ci task instead of e2e
+      - run: npx nx affected -t test build e2e
