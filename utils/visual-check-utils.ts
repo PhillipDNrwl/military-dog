@@ -1,15 +1,9 @@
 import { Configuration, BatchInfo, ClassicRunner, Eyes, Target, BrowserType } from '@applitools/eyes-playwright';
 import type { Locator, Page } from '@playwright/test';
 
-// Use the Classic runner for a single snapshot per check
 const runner = new ClassicRunner();
-// Default batch grouping; you can override via initVisualTests
 let batch = new BatchInfo('Default Batch');
 
-/**
- * Initialize a new visual test batch.
- * @param batchName Name of the batch in the Applitools dashboard
- */
 export function initVisualTests(batchName: string) {
   batch = new BatchInfo(batchName);
 }
@@ -59,11 +53,9 @@ export async function visualCheck(
     viewportSize = viewportSizeOverride;
   }
 
-  // Configure Eyes for a single environment
   const conf = new Configuration();
   conf.addBrowser(1280, 720, BrowserType.CHROME);
-  // Uncomment and adjust if you need mobile emulation:
-  // conf.addDeviceEmulation('iPhone X');
+
 
   const eyes = new Eyes(runner);
   eyes.setBatch(batch);
@@ -72,12 +64,10 @@ export async function visualCheck(
 
   await eyes.open(page, appName, testName, viewportSize);
 
-  // Choose region or full-window
   let checkTarget = region
     ? Target.region(typeof region === 'string' ? page.getByTestId(region) : region)
     : Target.window();
 
-  // Apply any masks
   for (const mask of masks) {
     const maskLocator = typeof mask === 'string' ? page.getByTestId(mask) : mask;
     checkTarget = checkTarget.ignore(maskLocator);
