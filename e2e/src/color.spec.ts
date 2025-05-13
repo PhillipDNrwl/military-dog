@@ -23,10 +23,7 @@ test.describe('Home page', () => {
 
     await visualCheck(page, 'Basic card test', {
       region: 'basic-card',
-      // masks: [
-      //   'run-visualization-instance-group-list-title',
-      //   'run-visualization-task-list-item',
-      // ],
+      masks: [],
     });
   });
 });

@@ -1,12 +1,13 @@
 import {
     BatchInfo,
+    ClassicRunner,
     Eyes,
     Target,
     VisualGridRunner,
   } from '@applitools/eyes-playwright';
   import type { Locator, Page } from '@playwright/test';
   
-  const runner = new VisualGridRunner({ testConcurrency: 5 });
+  const runner = new ClassicRunner();
   let batch = new BatchInfo('Basic visual test');
   
   
